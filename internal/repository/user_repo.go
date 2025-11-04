@@ -56,7 +56,7 @@ func (u *userRepository) GetByEmail(email string) (*entity.User, error) {
 
 func (u *userRepository) GetAll() ([]entity.User, error) {
 	var users []entity.User
-	err := u.db.Find(&users).Preload("Group").Error
+	err := u.db.Preload("Group").Find(&users).Error
 	if err != nil {
 		return nil, err
 	}

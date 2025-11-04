@@ -2,12 +2,14 @@ package http
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"net/http"
+	"time"
 	"web-lab/internal/dto"
 	"web-lab/internal/service"
 	utils "web-lab/pkg/utils"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -53,7 +55,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
 			return
 		}
-		// h.userService.Update()
+		err := h.userService.Update(&dto.UpdateUserRequest{ID: user.ID, LastVisitTime: time.Now()}) // время последнего захода
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+			return
+		}
 		c.SetCookie("token", token, 3600*24, "/", "", false, true)
 	}
 	c.JSON(http.StatusOK, dto.SuccessfulAuthResponse{

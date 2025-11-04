@@ -60,6 +60,9 @@ func (u *userService) Update(user *dto.UpdateUserRequest) error {
 	if user.GroupID != uuid.Nil {
 		oldUser.GroupID = user.GroupID
 	}
+	if !user.LastVisitTime.IsZero() {
+		oldUser.LastVisitAt = user.LastVisitTime
+	}
 	return u.repo.Update(oldUser)
 }
 func (u *userService) Delete(ID uuid.UUID) error {

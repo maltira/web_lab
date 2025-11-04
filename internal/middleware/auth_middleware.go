@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"web-lab/internal/dto"
 	"web-lab/pkg/utils"
@@ -11,8 +10,6 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("[AuthMiddleware] Path:", c.Request.URL.Path)
-
 		tokenStr, err := c.Cookie("token") // проверка существования токена
 		if err != nil {                    // токена нет
 			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Code: 401, Error: "unauthorized"})
