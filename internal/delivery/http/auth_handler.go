@@ -33,7 +33,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	user, err := h.userService.GetByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Неверный email или пароль"})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Указан неверный email или пароль"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
@@ -44,10 +44,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	isPasswordCorrect := utils.CheckPasswordHash(req.Password, user.Password)
 	token := ""
 	if !isPasswordCorrect {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Неверный email или пароль"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Указан неверный email или пароль"})
 		return
 	} else if user.IsBlock {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Пользователь заблокирован"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Пользователь был заблокирован в этом сервисе"})
 		return
 	} else {
 		token, err = utils.GenerateToken(user.ID, user.Group.Name)
