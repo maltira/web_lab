@@ -18,5 +18,5 @@ type User struct {
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
-	Group Group `gorm:"foreignKey:GroupID"`
+	Group Group `gorm:"foreignKey:GroupID;onDelete:CASCADE"`
 }

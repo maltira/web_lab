@@ -30,6 +30,7 @@ func Run() {
 	initUserModule(apiGroup, db)
 	initGroupModule(apiGroup, db)
 	initAuthModule(apiGroup, db)
+	initPublicationModule(apiGroup, db)
 
 	// ? Запуск сервера
 	fmt.Printf("Запуск сервера по адресу: http://%s:%s/api/v1\n", config.Cfg.AppHost, config.Cfg.AppPort)
@@ -78,5 +79,18 @@ func initAuthModule(r *gin.RouterGroup, db *gorm.DB) {
 		authGroup.POST("/login", h.Login)
 		authGroup.POST("/logout", h.Logout)
 		authGroup.GET("/status", h.AuthStatus)
+	}
+}
+func initPublicationModule(r *gin.RouterGroup, db *gorm.DB) {
+	repo := repository.NewPublicationRepository(db)
+	sc := service.NewPublicationService(repo)
+	h := http.NewPublicationHandler(sc)
+
+	publicationGroup := r.Group("/publication").Use(middleware.AuthMiddleware())
+	{
+		publicationGroup.POST("/create", h.CreatePublication)
+		publicationGroup.DELETE("/:id", h.DeletePublication, middleware.ValidateUUID())
+		publicationGroup.GET("/:id", h.FindByID, middleware.ValidateUUID())
+		publicationGroup.GET("/all", h.FindAllPublications)
 	}
 }
