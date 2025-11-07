@@ -11,6 +11,8 @@ import (
 type PublicationService interface {
 	Create(publication *dto.PublicationRequest) error
 	Delete(publicationID uuid.UUID) error
+	Update(publication *dto.PublicationUpdateRequest) error
+
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
 	FindAll() ([]entity.Publication, error)
 }
@@ -28,8 +30,26 @@ func (s *publicationService) Create(publication *dto.PublicationRequest) error {
 		Title:       publication.Title,
 		Description: publication.Description,
 		UserID:      publication.UserID,
+		Categories:  publication.Categories,
 	}
 	return s.repo.Create(p)
+}
+
+func (s *publicationService) Update(publication *dto.PublicationUpdateRequest) error {
+	p, err := s.FindByID(publication.ID)
+	if err != nil {
+		return err
+	}
+	if publication.Title != "" && p.Title != publication.Title {
+		p.Title = publication.Title
+	}
+	if publication.Description != "" && p.Description != publication.Description {
+		p.Description = publication.Description
+	}
+	if publication.Categories != "" && p.Categories != publication.Categories {
+		p.Categories = publication.Categories
+	}
+	return s.repo.Update(p)
 }
 
 func (s *publicationService) Delete(publicationID uuid.UUID) error {

@@ -45,10 +45,10 @@ func (u *userService) Update(req *dto.UpdateUserRequest) error {
 		return err
 	}
 
-	if req.Name != "" {
+	if req.Name != "" && req.Name != oldUser.Name {
 		oldUser.Name = req.Name
 	}
-	if req.Email != "" {
+	if req.Email != "" && req.Email != oldUser.Email {
 		oldUser.Email = req.Email
 	}
 	if req.Password != "" {
@@ -56,12 +56,14 @@ func (u *userService) Update(req *dto.UpdateUserRequest) error {
 		if err != nil {
 			return err
 		}
-		oldUser.Password = hashedPassword
+		if oldUser.Password != hashedPassword {
+			oldUser.Password = hashedPassword
+		}
 	}
 	if req.IsBlock != nil {
 		oldUser.IsBlock = *req.IsBlock
 	}
-	if req.GroupID != uuid.Nil {
+	if req.GroupID != uuid.Nil && oldUser.GroupID != req.GroupID {
 		oldUser.GroupID = req.GroupID
 	}
 	if !req.LastVisitTime.IsZero() {

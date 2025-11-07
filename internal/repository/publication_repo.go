@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"time"
 	"web-lab/internal/entity"
 
 	"github.com/google/uuid"
@@ -10,6 +11,8 @@ import (
 type PublicationRepository interface {
 	Create(publication *entity.Publication) error
 	Delete(publicationID uuid.UUID) error
+	Update(publication *entity.Publication) error
+
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
 	FindAll() ([]entity.Publication, error)
 }
@@ -28,6 +31,16 @@ func (p *publicationRepository) Create(publication *entity.Publication) error {
 
 func (p *publicationRepository) Delete(publicationID uuid.UUID) error {
 	return p.db.Delete(&entity.Publication{}, publicationID).Error
+}
+
+func (p *publicationRepository) Update(publication *entity.Publication) error {
+	response := p.db.Model(&entity.Publication{}).Where("id = ?", publication.ID).Updates(map[string]interface{}{
+		"title":       publication.Title,
+		"description": publication.Description,
+		"categories":  publication.Categories,
+		"updated_at":  time.Now(),
+	})
+	return response.Error
 }
 
 func (p *publicationRepository) FindByID(publicationID uuid.UUID) (*entity.Publication, error) {

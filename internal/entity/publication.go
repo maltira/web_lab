@@ -12,6 +12,8 @@ type Publication struct {
 	Description string    `json:"description" gorm:"not null"`
 	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
 
+	Categories string `json:"categories" gorm:"not null"`
+
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 

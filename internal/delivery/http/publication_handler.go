@@ -10,40 +10,101 @@ import (
 )
 
 type PublicationHandler struct {
-	sc service.PublicationService
+	sc          service.PublicationService
+	userService service.UserService
 }
 
-func NewPublicationHandler(sc service.PublicationService) *PublicationHandler {
-	return &PublicationHandler{sc: sc}
+func NewPublicationHandler(sc service.PublicationService, userService service.UserService) *PublicationHandler {
+	return &PublicationHandler{sc: sc, userService: userService}
 }
 
 func (h *PublicationHandler) CreatePublication(c *gin.Context) {
-	var req dto.PublicationRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Некорректные данные публикации"})
-		return
-	}
+	userID := c.MustGet("userID").(uuid.UUID)
+	user, err := h.userService.GetByID(userID)
 
-	err := h.sc.Create(&req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: "Не удалось получить информацию о пользователе"})
 		return
 	}
+	if !user.IsBlock && user.Group.CanPublishPosts {
+		var req dto.PublicationRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Некорректные данные публикации"})
+			return
+		}
+		err := h.sc.Create(&req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+			return
+		}
 
-	c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "Публикаци успешно создана"})
+		c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "Публикаци успешно создана"})
+		return
+	}
+	c.JSON(http.StatusForbidden, dto.ErrorResponse{Code: 403, Error: "Вам запрещено публиковать посты"})
 }
 
 func (h *PublicationHandler) DeletePublication(c *gin.Context) {
 	id := c.Param("id")
 	publicationID := uuid.MustParse(id)
+	publication, err := h.sc.FindByID(publicationID)
 
-	err := h.sc.Delete(publicationID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: "Не удалось получить информацию о публикации"})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "Публикация удалена"})
+	userID := c.MustGet("userID").(uuid.UUID)
+	user, err := h.userService.GetByID(userID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: "Не удалось получить информацию о пользователе"})
+		return
+	}
+
+	if !user.IsBlock && user.Group.CanPublishPosts && (user.ID == publication.UserID || user.Group.Name == "Админ") {
+		err := h.sc.Delete(publicationID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "Публикация удалена"})
+		return
+	}
+	c.JSON(http.StatusForbidden, dto.ErrorResponse{Code: 403, Error: "Вам запрещено удалять этот пост"})
+}
+
+func (h *PublicationHandler) UpdatePublication(c *gin.Context) {
+	var req dto.PublicationUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Некорректные данные публикации"})
+		return
+	}
+
+	publication, err := h.sc.FindByID(req.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: "Не удалось получить информацию о публикации"})
+		return
+	}
+
+	userID := c.MustGet("userID").(uuid.UUID)
+	user, err := h.userService.GetByID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: "Не удалось получить информацию о пользователе"})
+		return
+	}
+
+	if !user.IsBlock && user.Group.CanPublishPosts && (user.ID == publication.UserID || user.Group.Name == "Админ") {
+		err := h.sc.Update(&req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: "Не удалось обновить публикацию"})
+			return
+		}
+		c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "Публикация изменена"})
+		return
+	}
+	c.JSON(http.StatusForbidden, dto.ErrorResponse{Code: 403, Error: "Вам запрещено изменять этот пост"})
 }
 
 func (h *PublicationHandler) FindByID(c *gin.Context) {
