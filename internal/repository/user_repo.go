@@ -8,7 +8,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(user *entity.User) error
+	Create(user *entity.User) (*entity.User, error)
 	Update(user *entity.User) error
 	Delete(ID uuid.UUID) error
 	GetByID(ID uuid.UUID) (*entity.User, error)
@@ -24,8 +24,12 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (u *userRepository) Create(user *entity.User) error {
-	return u.db.Create(&user).Error
+func (u *userRepository) Create(user *entity.User) (*entity.User, error) {
+	res := u.db.Create(&user)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return user, nil
 }
 
 func (u *userRepository) Update(user *entity.User) error {

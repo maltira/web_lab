@@ -70,6 +70,44 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
+func (h *AuthHandler) Registration(c *gin.Context) {
+	var req dto.CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Переданы некорректные данные"})
+		return
+	}
+
+	_, err := h.userService.GetByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			user, err := h.userService.Create(&req)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+				return
+			}
+
+			token, err := utils.GenerateToken(user.ID, user.Group.Name)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+				return
+			}
+			c.SetCookie("token", token, 3600*24, "/", "", false, true)
+
+			c.JSON(http.StatusCreated, dto.SuccessfulAuthResponse{
+				Message:   "authorized",
+				User:      *user,
+				UserGroup: user.Group,
+				Token:     token,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Пользователь с таким email уже существует"})
+	return
+}
+
 func (h *AuthHandler) AuthStatus(c *gin.Context) {
 	tokenStr, _ := c.Cookie("token")
 	if tokenStr == "" {

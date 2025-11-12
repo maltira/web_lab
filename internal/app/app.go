@@ -77,6 +77,7 @@ func initAuthModule(r *gin.RouterGroup, db *gorm.DB) {
 	authGroup := r.Group("/auth")
 	{
 		authGroup.POST("/login", h.Login)
+		authGroup.POST("/registration", h.Registration)
 		authGroup.POST("/logout", h.Logout)
 		authGroup.GET("/status", h.AuthStatus)
 	}
@@ -94,6 +95,6 @@ func initPublicationModule(r *gin.RouterGroup, db *gorm.DB) {
 		publicationGroup.PUT("/update", h.UpdatePublication)
 		publicationGroup.DELETE("/:id", h.DeletePublication, middleware.ValidateUUID())
 		publicationGroup.GET("/:id", h.FindByID, middleware.ValidateUUID())
-		publicationGroup.GET("/all", h.FindAllPublications)
 	}
+	r.GET("/publication/all", h.FindAllPublications)
 }

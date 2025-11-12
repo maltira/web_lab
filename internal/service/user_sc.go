@@ -10,7 +10,7 @@ import (
 )
 
 type UserService interface {
-	Create(usr *dto.CreateUserRequest) error
+	Create(usr *dto.CreateUserRequest) (*entity.User, error)
 	Update(user *dto.UpdateUserRequest) error
 	Delete(ID uuid.UUID) error
 	GetByID(ID uuid.UUID) (*entity.User, error)
@@ -26,10 +26,10 @@ func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo}
 }
 
-func (u *userService) Create(usr *dto.CreateUserRequest) error {
+func (u *userService) Create(usr *dto.CreateUserRequest) (*entity.User, error) {
 	passwordHash, err := utils.HashPassword(usr.Password)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	user := &entity.User{
 		Name:     usr.Name,
