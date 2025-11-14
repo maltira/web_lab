@@ -48,7 +48,7 @@ func initUserModule(r *gin.RouterGroup, db *gorm.DB) {
 	userGroup := r.Group("/user").Use(middleware.AuthMiddleware())
 	{
 		userGroup.GET("/:id", h.GetUserByID, middleware.ValidateUUID())
-		userGroup.GET("/all", h.ListUser)
+		userGroup.GET("/all", h.ListUser, middleware.AdminMiddleware())
 		userGroup.GET("", h.GetCurrentUser)
 		userGroup.POST("", h.CreateUser, middleware.AdminMiddleware())                                  // добавлять может только админ
 		userGroup.PUT("", h.UpdateUser, middleware.AdminMiddleware())                                   // изменять может только админ
