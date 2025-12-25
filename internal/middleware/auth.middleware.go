@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"web-lab/internal/dto"
 	"web-lab/pkg/utils"
@@ -15,7 +16,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Code: 401, Error: "unauthorized"})
 			return
 		}
-
 		// токен есть - валидация токена
 		userID, userGroup, err := utils.ValidateToken(tokenStr)
 		if err != nil {
@@ -24,6 +24,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 		c.Set("userID", userID)
 		c.Set("userGroup", userGroup)
+		fmt.Println("[AuthMiddleware] User ID: ", userID)
 		c.Next()
 	}
 }

@@ -34,12 +34,15 @@ func (u *userRepository) Create(user *entity.User) (*entity.User, error) {
 
 func (u *userRepository) Update(user *entity.User) error {
 	response := u.db.Model(&entity.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
-		"name":          user.Name,
-		"email":         user.Email,
-		"password":      user.Password,
-		"is_block":      user.IsBlock,
-		"group_id":      user.GroupID,
-		"last_visit_at": user.LastVisitAt,
+		"name":               user.Name,
+		"avatar":             user.Avatar,
+		"description":        user.Description,
+		"is_greeting_closed": user.IsGreetingClosed,
+		"email":              user.Email,
+		"password":           user.Password,
+		"is_block":           user.IsBlock,
+		"group_id":           user.GroupID,
+		"last_visit_at":      user.LastVisitAt,
 	})
 	return response.Error
 }

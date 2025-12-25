@@ -45,14 +45,15 @@ func initUserModule(r *gin.RouterGroup, db *gorm.DB) {
 	sc := service.NewUserService(repo)
 	h := http.NewUserHandler(sc)
 
-	userGroup := r.Group("/user").Use(middleware.AuthMiddleware())
+	userGroup := r.Group("/user")
 	{
-		userGroup.GET("/:id", h.GetUserByID, middleware.ValidateUUID())
-		userGroup.GET("/all", h.ListUser, middleware.AdminMiddleware())
-		userGroup.GET("", h.GetCurrentUser)
-		userGroup.POST("", h.CreateUser, middleware.AdminMiddleware())                                  // добавлять может только админ
-		userGroup.PUT("", h.UpdateUser, middleware.AdminMiddleware())                                   // изменять может только админ
-		userGroup.DELETE("/:id", h.DeleteUser, middleware.ValidateUUID(), middleware.AdminMiddleware()) // удалять может только админ
+		userGroup.GET("/:id", middleware.ValidateUUID(), h.GetUserByID)
+		userGroup.GET("/all", h.ListUser)
+		userGroup.GET("", middleware.AuthMiddleware(), h.GetCurrentUser)
+		userGroup.POST("", h.CreateUser)
+		userGroup.PUT("", h.UpdateUser)
+		userGroup.PUT("/greeting", h.UpdateUserGreeting)
+		userGroup.DELETE("/:id", middleware.ValidateUUID(), h.DeleteUser)
 	}
 	r.GET("/user/email/:email", h.GetUserByEmail)
 }
@@ -63,7 +64,7 @@ func initGroupModule(r *gin.RouterGroup, db *gorm.DB) {
 
 	groupGroup := r.Group("/group").Use(middleware.AuthMiddleware()).Use(middleware.AdminMiddleware())
 	{
-		groupGroup.GET("/:id", h.GetByID, middleware.ValidateUUID())
+		groupGroup.GET("/:id", middleware.ValidateUUID(), h.GetByID)
 		groupGroup.GET("/all", h.GetAll)
 	}
 }
@@ -93,8 +94,8 @@ func initPublicationModule(r *gin.RouterGroup, db *gorm.DB) {
 	{
 		publicationGroup.POST("/create", h.CreatePublication)
 		publicationGroup.PUT("/update", h.UpdatePublication)
-		publicationGroup.DELETE("/:id", h.DeletePublication, middleware.ValidateUUID())
-		publicationGroup.GET("/:id", h.FindByID, middleware.ValidateUUID())
+		publicationGroup.DELETE("/:id", middleware.ValidateUUID(), h.DeletePublication)
+		publicationGroup.GET("/:id", middleware.ValidateUUID(), h.FindByID)
 	}
 	r.GET("/publication/all", h.FindAllPublications)
 }

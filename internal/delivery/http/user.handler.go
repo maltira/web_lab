@@ -36,11 +36,23 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var req dto.UpdateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil || req.ID == uuid.Nil || (req.Name == "" && req.Email == "" && req.Password == "" && req.GroupID == uuid.Nil && req.IsBlock == nil) {
+	if err := c.ShouldBindJSON(&req); err != nil || req.ID == uuid.Nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Некорректные данные"})
 		return
 	}
 	if err := h.service.Update(&req); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, dto.SuccessfulResponse{Message: "Пользователь успешно обновлён"})
+}
+func (h *UserHandler) UpdateUserGreeting(c *gin.Context) {
+	var req dto.UpdateUserGreetingRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.ID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Некорректные данные"})
+		return
+	}
+	if err := h.service.UpdateGreetingClosed(req.ID, *req.IsGreetingClosed); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
 		return
 	}
@@ -62,6 +74,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 	userUUID := uuid.MustParse(id)
 	user, err := h.service.GetByID(userUUID)
+
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, dto.ErrorResponse{Code: 404, Error: err.Error()})
@@ -90,6 +103,7 @@ func (h *UserHandler) GetUserByEmail(c *gin.Context) {
 func (h *UserHandler) GetCurrentUser(c *gin.Context) {
 	userID := c.MustGet("userID").(uuid.UUID)
 	user, err := h.service.GetByID(userID)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
 		return

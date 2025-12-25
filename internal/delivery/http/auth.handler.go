@@ -29,7 +29,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Получаем пользоваетля по почте
+	// Получаем пользователя по почте
 	user, err := h.userService.GetByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -49,19 +49,20 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	} else if user.IsBlock {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Пользователь был заблокирован в этом сервисе"})
 		return
-	} else {
-		token, err = utils.GenerateToken(user.ID, user.Group.Name)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
-			return
-		}
-		err := h.userService.Update(&dto.UpdateUserRequest{ID: user.ID, LastVisitTime: time.Now()}) // время последнего захода
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
-			return
-		}
-		c.SetCookie("token", token, 3600*24, "/", "", false, true)
 	}
+
+	token, err = utils.GenerateToken(user.ID, user.Group.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+		return
+	}
+	err = h.userService.UpdateLastVisitTime(user.ID, time.Now()) // время последнего захода
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+		return
+	}
+	c.SetCookie("token", token, 3600*24, "/", "", false, true)
+
 	c.JSON(http.StatusOK, dto.SuccessfulAuthResponse{
 		Message:   "authorized",
 		User:      *user,
