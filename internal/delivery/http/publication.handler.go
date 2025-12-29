@@ -121,6 +121,17 @@ func (h *PublicationHandler) FindByID(c *gin.Context) {
 	c.JSON(http.StatusOK, p)
 }
 
+func (h *PublicationHandler) FindByUserID(c *gin.Context) {
+	id := c.Param("id")
+	userID := uuid.MustParse(id)
+
+	publications, err := h.sc.FindByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+	}
+	c.JSON(http.StatusOK, publications)
+}
+
 func (h *PublicationHandler) FindAllPublications(c *gin.Context) {
 	publications, err := h.sc.FindAll()
 	if err != nil {

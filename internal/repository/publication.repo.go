@@ -14,6 +14,7 @@ type PublicationRepository interface {
 	Update(publication *entity.Publication) error
 
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
+	FindByUserID(userID uuid.UUID) ([]entity.Publication, error)
 	FindAll() ([]entity.Publication, error)
 }
 
@@ -53,6 +54,19 @@ func (p *publicationRepository) FindByID(publicationID uuid.UUID) (*entity.Publi
 		return nil, err
 	}
 	return &publication, nil
+}
+
+func (p *publicationRepository) FindByUserID(userID uuid.UUID) ([]entity.Publication, error) {
+	var publications []entity.Publication
+	err := p.db.
+		Where("user_id = ?", userID).
+		Preload("PublicationCategories").
+		Preload("PublicationCategories.Category").
+		Find(&publications).Error
+	if err != nil {
+		return nil, err
+	}
+	return publications, nil
 }
 
 func (p *publicationRepository) FindAll() ([]entity.Publication, error) {

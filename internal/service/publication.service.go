@@ -17,6 +17,7 @@ type PublicationService interface {
 	Update(publication *dto.PublicationUpdateRequest) error
 
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
+	FindByUserID(userID uuid.UUID) ([]entity.Publication, error)
 	FindAll() ([]entity.Publication, error)
 }
 
@@ -162,6 +163,10 @@ func (s *publicationService) Delete(publicationID uuid.UUID) error {
 
 func (s *publicationService) FindByID(publicationID uuid.UUID) (*entity.Publication, error) {
 	return s.repo.FindByID(publicationID)
+}
+
+func (s *publicationService) FindByUserID(userID uuid.UUID) ([]entity.Publication, error) {
+	return s.repo.FindByUserID(userID)
 }
 
 func (s *publicationService) FindAll() ([]entity.Publication, error) {

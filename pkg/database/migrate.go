@@ -13,6 +13,7 @@ func Migrate(db *gorm.DB) {
 		&entity.Publication{},
 		&entity.Category{},
 		&entity.PublicationCategories{},
+		&entity.Tutorial{},
 	)
 	if err != nil {
 		panic(err)

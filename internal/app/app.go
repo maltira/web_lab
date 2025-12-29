@@ -31,6 +31,7 @@ func Run() {
 	initGroupModule(apiGroup, db)
 	initAuthModule(apiGroup, db)
 	initPublicationModule(apiGroup, db)
+	initTutorialModule(apiGroup, db)
 
 	// ? Запуск сервера
 	fmt.Printf("Запуск сервера по адресу: http://%s:%s/api/v1\n", config.Cfg.AppHost, config.Cfg.AppPort)
@@ -96,6 +97,18 @@ func initPublicationModule(r *gin.RouterGroup, db *gorm.DB) {
 		publicationGroup.PUT("/update", middleware.AuthMiddleware(), h.UpdatePublication)
 		publicationGroup.DELETE("/:id", middleware.AuthMiddleware(), middleware.ValidateUUID(), h.DeletePublication)
 		publicationGroup.GET("/:id", middleware.ValidateUUID(), h.FindByID)
+		publicationGroup.GET("/user/:id/all", middleware.ValidateUUID(), h.FindByUserID)
+		publicationGroup.GET("/all", h.FindAllPublications)
 	}
-	r.GET("/publication/all", h.FindAllPublications)
+
+}
+func initTutorialModule(r *gin.RouterGroup, db *gorm.DB) {
+	tutorialRepo := repository.NewTutorialRepository(db)
+	tutorialSc := service.NewTutorialService(tutorialRepo)
+	h := http.NewTutorialHandler(tutorialSc)
+
+	tGroup := r.Group("/tutorial")
+	{
+		tGroup.GET("/all", h.GetAll)
+	}
 }
