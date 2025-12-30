@@ -14,8 +14,8 @@ type PublicationRepository interface {
 	Update(publication *entity.Publication) error
 
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
-	FindByUserID(userID uuid.UUID) ([]entity.Publication, error)
-	FindAll() ([]entity.Publication, error)
+	FindByUserID(userID uuid.UUID, isDraft bool) ([]entity.Publication, error)
+	FindAll(isDraft bool) ([]entity.Publication, error)
 }
 
 type publicationRepository struct {
@@ -56,9 +56,10 @@ func (p *publicationRepository) FindByID(publicationID uuid.UUID) (*entity.Publi
 	return &publication, nil
 }
 
-func (p *publicationRepository) FindByUserID(userID uuid.UUID) ([]entity.Publication, error) {
+func (p *publicationRepository) FindByUserID(userID uuid.UUID, isDraft bool) ([]entity.Publication, error) {
 	var publications []entity.Publication
 	err := p.db.
+		Where("is_draft = ?", isDraft).
 		Where("user_id = ?", userID).
 		Preload("PublicationCategories").
 		Preload("PublicationCategories.Category").
@@ -69,9 +70,10 @@ func (p *publicationRepository) FindByUserID(userID uuid.UUID) ([]entity.Publica
 	return publications, nil
 }
 
-func (p *publicationRepository) FindAll() ([]entity.Publication, error) {
+func (p *publicationRepository) FindAll(isDraft bool) ([]entity.Publication, error) {
 	var publications []entity.Publication
 	if err := p.db.
+		Where("is_draft = ?", isDraft).
 		Preload("User").
 		Preload("PublicationCategories").
 		Preload("PublicationCategories.Category").

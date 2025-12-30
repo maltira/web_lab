@@ -17,8 +17,8 @@ type PublicationService interface {
 	Update(publication *dto.PublicationUpdateRequest) error
 
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
-	FindByUserID(userID uuid.UUID) ([]entity.Publication, error)
-	FindAll() ([]entity.Publication, error)
+	FindByUserID(userID uuid.UUID, isDraft bool) ([]entity.Publication, error)
+	FindAll(isDraft bool) ([]entity.Publication, error)
 }
 
 type publicationService struct {
@@ -38,6 +38,7 @@ func (s *publicationService) Create(publication *dto.PublicationRequest) error {
 		Description:     publication.Description,
 		UserID:          publication.UserID,
 		BackgroundColor: publication.BackgroundColor,
+		IsDraft:         publication.IsDraft,
 	}
 
 	// * 1. Создание публикации
@@ -100,6 +101,9 @@ func (s *publicationService) Update(publication *dto.PublicationUpdateRequest) e
 	}
 	if publication.BackgroundColor != nil && *publication.BackgroundColor != "" && p.BackgroundColor != *publication.BackgroundColor {
 		p.BackgroundColor = *publication.BackgroundColor
+	}
+	if publication.IsDraft != nil && *publication.IsDraft != p.IsDraft {
+		p.IsDraft = *publication.IsDraft
 	}
 	if err = tx.Save(p).Error; err != nil {
 		tx.Rollback()
@@ -165,10 +169,10 @@ func (s *publicationService) FindByID(publicationID uuid.UUID) (*entity.Publicat
 	return s.repo.FindByID(publicationID)
 }
 
-func (s *publicationService) FindByUserID(userID uuid.UUID) ([]entity.Publication, error) {
-	return s.repo.FindByUserID(userID)
+func (s *publicationService) FindByUserID(userID uuid.UUID, isDraft bool) ([]entity.Publication, error) {
+	return s.repo.FindByUserID(userID, isDraft)
 }
 
-func (s *publicationService) FindAll() ([]entity.Publication, error) {
-	return s.repo.FindAll()
+func (s *publicationService) FindAll(isDraft bool) ([]entity.Publication, error) {
+	return s.repo.FindAll(isDraft)
 }

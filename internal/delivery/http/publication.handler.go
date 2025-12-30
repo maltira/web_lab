@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"web-lab/internal/dto"
 	"web-lab/internal/service"
@@ -33,7 +32,6 @@ func (h *PublicationHandler) CreatePublication(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Code: 400, Error: "Некорректные данные публикации"})
 			return
 		}
-		fmt.Println(req.Categories)
 		err := h.sc.Create(&req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
@@ -123,9 +121,10 @@ func (h *PublicationHandler) FindByID(c *gin.Context) {
 
 func (h *PublicationHandler) FindByUserID(c *gin.Context) {
 	id := c.Param("id")
+	isDraft := c.DefaultQuery("is_draft", "false")
 	userID := uuid.MustParse(id)
 
-	publications, err := h.sc.FindByUserID(userID)
+	publications, err := h.sc.FindByUserID(userID, isDraft == "true")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
 	}
@@ -133,7 +132,9 @@ func (h *PublicationHandler) FindByUserID(c *gin.Context) {
 }
 
 func (h *PublicationHandler) FindAllPublications(c *gin.Context) {
-	publications, err := h.sc.FindAll()
+	isDraft := c.DefaultQuery("is_draft", "false")
+
+	publications, err := h.sc.FindAll(isDraft == "true")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
 	}

@@ -9,6 +9,7 @@ type PublicationRequest struct {
 	Description     string    `json:"description"`
 	UserID          uuid.UUID `json:"user_id"`
 	BackgroundColor string    `json:"background_color"`
+	IsDraft         bool      `json:"is_draft"`
 
 	Categories []PublicationCategoryRequest
 }
@@ -18,5 +19,6 @@ type PublicationUpdateRequest struct {
 	Title           *string   `json:"title"`
 	Description     *string   `json:"description"`
 	BackgroundColor *string   `json:"background_color"`
+	IsDraft         *bool     `json:"is_draft"`
 	Categories      *[]PublicationCategoryUpdateRequest
 }

@@ -20,6 +20,7 @@ type Publication struct {
 	UserID      uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
 
 	BackgroundColor string `json:"background_color" gorm:"not null;size:7;default:'#F6F6F6'"`
+	IsDraft         bool   `json:"is_draft" gorm:"not null; default:true"`
 
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
