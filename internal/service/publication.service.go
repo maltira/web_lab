@@ -6,6 +6,7 @@ import (
 	"web-lab/internal/dto"
 	"web-lab/internal/entity"
 	"web-lab/internal/repository"
+	"web-lab/pkg/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -19,6 +20,8 @@ type PublicationService interface {
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
 	FindByUserID(userID uuid.UUID, isDraft bool) ([]entity.Publication, error)
 	FindAll(isDraft bool) ([]entity.Publication, error)
+
+	GetAllCategories() (*utils.CategorizedGroups, error)
 }
 
 type publicationService struct {
@@ -175,4 +178,14 @@ func (s *publicationService) FindByUserID(userID uuid.UUID, isDraft bool) ([]ent
 
 func (s *publicationService) FindAll(isDraft bool) ([]entity.Publication, error) {
 	return s.repo.FindAll(isDraft)
+}
+
+func (s *publicationService) GetAllCategories() (*utils.CategorizedGroups, error) {
+	categories, err := s.repo.GetAllCategories()
+	if err != nil {
+		return nil, err
+	}
+	newCategories := utils.CategoriesGroupedByFirstLetter(categories)
+
+	return newCategories, nil
 }

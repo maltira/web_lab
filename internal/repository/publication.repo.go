@@ -16,6 +16,8 @@ type PublicationRepository interface {
 	FindByID(publicationID uuid.UUID) (*entity.Publication, error)
 	FindByUserID(userID uuid.UUID, isDraft bool) ([]entity.Publication, error)
 	FindAll(isDraft bool) ([]entity.Publication, error)
+
+	GetAllCategories() ([]entity.Category, error)
 }
 
 type publicationRepository struct {
@@ -81,4 +83,13 @@ func (p *publicationRepository) FindAll(isDraft bool) ([]entity.Publication, err
 		return nil, err
 	}
 	return publications, nil
+}
+
+func (p *publicationRepository) GetAllCategories() ([]entity.Category, error) {
+	var categories []entity.Category
+	err := p.db.Preload("PublicationCategories").Preload("PublicationCategories.Publication").Order("name ASC").Find(&categories).Error
+	if err != nil {
+		return nil, err
+	}
+	return categories, nil
 }

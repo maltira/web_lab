@@ -140,3 +140,12 @@ func (h *PublicationHandler) FindAllPublications(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, publications)
 }
+
+func (h *PublicationHandler) GetAllCategories(c *gin.Context) {
+	categories, err := h.sc.GetAllCategories()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
+	}
+	c.JSON(http.StatusOK, categories)
+}

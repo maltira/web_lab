@@ -40,5 +40,6 @@ type PublicationCategories struct {
 	DisplayOrder    int    `json:"display_order" gorm:"default:0"`
 
 	// Связи
-	Category Category `gorm:"foreignKey:CategoryID"`
+	Category    Category    `gorm:"foreignKey:CategoryID"`
+	Publication Publication `gorm:"foreignKey:PublicationID"`
 }
