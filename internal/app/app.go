@@ -32,6 +32,7 @@ func Run() {
 	initAuthModule(apiGroup, db)
 	initPublicationModule(apiGroup, db)
 	initTutorialModule(apiGroup, db)
+	initSubscriptionModule(apiGroup, db)
 
 	// ? Запуск сервера
 	fmt.Printf("Запуск сервера по адресу: http://%s:%s/api/v1\n", config.Cfg.AppHost, config.Cfg.AppPort)
@@ -116,5 +117,21 @@ func initTutorialModule(r *gin.RouterGroup, db *gorm.DB) {
 	tGroup := r.Group("/tutorial")
 	{
 		tGroup.GET("/all", h.GetAll)
+	}
+}
+func initSubscriptionModule(r *gin.RouterGroup, db *gorm.DB) {
+	subsRepo := repository.NewSubscriptionRepository(db)
+	subsSc := service.NewSubscriptionService(subsRepo)
+	h := http.NewSubscriptionHandler(subsSc)
+
+	subscriptionGroup := r.Group("/subscription").Use(middleware.AuthMiddleware())
+	{
+		subscriptionGroup.GET("/all/:id", h.GetAllSubscriptions)
+		subscriptionGroup.POST("/update/:target_id", h.UpdateSubscription)
+	}
+	subscriberGroup := r.Group("/subscriber").Use(middleware.AuthMiddleware())
+	{
+		subscriberGroup.GET("/all/:id", h.GetAllSubscribers)
+		subscriberGroup.GET("/check", h.CheckIsSubscribe)
 	}
 }

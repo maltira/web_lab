@@ -187,5 +187,5 @@ func (h *PublicationHandler) UpdateFavorite(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Code: 500, Error: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "Успешно"})
+	c.JSON(http.StatusOK, dto.SuccessfulResponse{Message: "successfully"})
 }
